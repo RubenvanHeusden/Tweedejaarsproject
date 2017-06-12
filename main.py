@@ -68,15 +68,50 @@ def group_feedback(data, people):
 
 
 
-data = read_data(DATA_CSV)
-people = get_people(data)
-feedback_dict = group_feedback(data, people)
+def feedback_types(data):
+    keep_list = []
+    start_list = []
+    stop_list = []
 
+    for i in range(0, len(data)):
+        keep_list.append(data[i][3])
+        start_list.append(data[i][4])
+        stop_list.append(data[i][5])
+
+    return (keep_list, start_list, stop_list)
+
+
+def split_training_data(data_list, length):
+    training_length = round( length * 0.8)
+    training_length = int(training_length)
+    return (data_list[0:training_length], data_list[training_length:length])
+
+
+
+data = read_data(DATA_CSV)
+feedback_list = feedback_types(data)
 
 
 print '---reading in and formatting data: complete---'
 
-print feedback_dict
+print keep_sets[1]
+
 
 
 ###############################################################################
+
+
+length = len(feedback_list[0])
+
+keep_sets = split_training_data(feedback_list[0], length)
+start_sets = split_training_data(feedback_list[1], length)
+stop_sets = split_training_data(feedback_list[2], length)
+
+
+
+
+
+
+
+
+print '---sets created---'
