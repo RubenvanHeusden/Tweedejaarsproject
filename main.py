@@ -2,6 +2,7 @@ from __future__ import division
 import csv
 from nltk.tokenize import word_tokenize
 from collections import Counter
+import numpy as np
 
 ###############################################################################
                     # GLOBAL VARIABLES
@@ -103,12 +104,13 @@ print '---reading in and formatting data: complete---'
 
 ###############################################################################
 
-
 length = len(feedback_list[0])
 
 keep_sets = split_training_data(feedback_list[0], length)
 start_sets = split_training_data(feedback_list[1], length)
 stop_sets = split_training_data(feedback_list[2], length)
+
+
 
 
 def tokenize_set(dataset):
@@ -118,28 +120,66 @@ def tokenize_set(dataset):
 
     return words
 
+
+
 keep_training_words = tokenize_set(keep_sets[0])
 start_training_words = tokenize_set(start_sets[0])
 stop_training_words = tokenize_set(stop_sets[0])
 
 
-def get_word_probabilities(words):
-    word_probabilities = {}
-    word_freq = Counter(words)
-    amount_of_words = len(words)
-    distinctive_words = list(set(words))
-    for word in distinctive_words:
-        word_probabilities[word] = word_freq[word] / amount_of_words
-
-    return word_probabilities
-
-
-wp_keep_training = get_word_probabilities(keep_training_words)
-wp_start_training = get_word_probabilities(start_training_words)
-wp_stop_training = get_word_probabilities(stop_training_words)
-
-
-
+all_words = keep_training_words + start_training_words + stop_training_words
 
 
 print '---sets created---'
+
+
+
+###############################################################################
+
+
+wc_keep_training = Counter(keep_training_words)
+wc_start_training = Counter(start_training_words)
+wc_stop_training = Counter(stop_training_words)
+wc_all_words = Counter(all_words)
+
+
+def add_one_estimate(feedback, ngram_count, class_ngram_count):
+    feedback_tokenized = word_tokenize(feedback)
+    sentence_probability = 1
+    for ngram in feedback_tokenized:
+        if ngram in ngram_count:
+            if ngram in class_ngram_count:
+                sentence_probability *= ((class_ngram_count[ngram] + 1)
+                                         / (ngram_count[ngram] + 3))
+            else:
+                sentence_probability *= 1 / (ngram_count[ngram] + 3)
+        else:
+            sentence_probability *= 1 / 3
+
+    return sentence_probability
+
+
+
+def get_class(feedback, wc_all_words, wc_keep_training, wc_start_training, wc_stop_training):
+    p_keep = add_one_estimate(feedback, wc_all_words, wc_keep_training)
+    p_start = add_one_estimate(feedback, wc_all_words, wc_start_training)
+    p_stop = add_one_estimate(feedback, wc_all_words, wc_stop_training)
+    return np.argmax([p_keep, p_start, p_stop])
+
+
+
+print '---classifying---'
+
+###############################################################################
+
+def classify_feedback(feedback_list, classnr):
+    accurate = 0
+    for feedback in feedback_list:
+        prediction = get_class(feedback, wc_all_words, wc_keep_training, wc_start_training, wc_stop_training)
+        print prediction
+        if prediction == classnr:
+            accurate += 1
+
+    return accurate / len(feedback_list)
+
+print classify_feedback(keep_sets[1], 0)
