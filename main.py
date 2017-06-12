@@ -1,4 +1,7 @@
+from __future__ import division
 import csv
+from nltk.tokenize import word_tokenize
+from collections import Counter
 
 ###############################################################################
                     # GLOBAL VARIABLES
@@ -94,7 +97,7 @@ feedback_list = feedback_types(data)
 
 print '---reading in and formatting data: complete---'
 
-print keep_sets[1]
+
 
 
 
@@ -108,7 +111,32 @@ start_sets = split_training_data(feedback_list[1], length)
 stop_sets = split_training_data(feedback_list[2], length)
 
 
+def tokenize_set(dataset):
+    words = []
+    for sentence in dataset:
+        words.extend(word_tokenize(sentence))
 
+    return words
+
+keep_training_words = tokenize_set(keep_sets[0])
+start_training_words = tokenize_set(start_sets[0])
+stop_training_words = tokenize_set(stop_sets[0])
+
+
+def get_word_probabilities(words):
+    word_probabilities = {}
+    word_freq = Counter(words)
+    amount_of_words = len(words)
+    distinctive_words = list(set(words))
+    for word in distinctive_words:
+        word_probabilities[word] = word_freq[word] / amount_of_words
+
+    return word_probabilities
+
+
+wp_keep_training = get_word_probabilities(keep_training_words)
+wp_start_training = get_word_probabilities(start_training_words)
+wp_stop_training = get_word_probabilities(stop_training_words)
 
 
 
