@@ -7,7 +7,7 @@ import numpy as np
 ###############################################################################
                     # GLOBAL VARIABLES
 
-DATA_CSV = 'vbdata.csv'
+DATA_CSV = 'testdata.csv'
 
 def settings():
     print 'Settings:\n'
@@ -37,41 +37,6 @@ def read_data(data_csv):
 
 
 
-# get_people extracts the distinctive person ID's from the data
-def get_people(data):
-    people = []
-
-    for i in range(0, len(data)):
-        people.append(data[i][0])
-
-    people = list(set(people))
-
-    return people
-
-
-
-# group_feedback groups the feedback per person and stores this in a dictionary.
-# Key: the person ID number, Data: the corresponding feedback entries given in
-# a list format. (Person ID: [Feedback_1, Feedback_2, Feedback_3])
-def group_feedback(data, people):
-    feedback_dict = {}
-    x = 0
-
-    for i in range(0, len(people)):
-        person = people[i]
-        feedback_dict[person] = []
-
-        for j in range(x, len(data)):
-            if data[j][0] == person:
-                feedback_dict[person].append(data[j])
-            else:
-                x = j
-                break
-
-    return feedback_dict
-
-
-
 def feedback_types(data):
     keep_list = []
     start_list = []
@@ -85,6 +50,7 @@ def feedback_types(data):
     return (keep_list, start_list, stop_list)
 
 
+
 def split_training_data(data_list, length):
     training_length = round( length * 0.8)
     training_length = int(training_length)
@@ -96,22 +62,12 @@ data = read_data(DATA_CSV)
 feedback_list = feedback_types(data)
 
 
+
 print '---reading in and formatting data: complete---'
 
 
 
-
-
 ###############################################################################
-
-length = len(feedback_list[0])
-
-keep_sets = split_training_data(feedback_list[0], length)
-start_sets = split_training_data(feedback_list[1], length)
-stop_sets = split_training_data(feedback_list[2], length)
-
-
-
 
 def tokenize_set(dataset):
     words = []
@@ -122,12 +78,17 @@ def tokenize_set(dataset):
 
 
 
+length = len(feedback_list[0])
+
+keep_sets = split_training_data(feedback_list[0], length)
+start_sets = split_training_data(feedback_list[1], length)
+stop_sets = split_training_data(feedback_list[2], length)
+
 keep_training_words = tokenize_set(keep_sets[0])
 start_training_words = tokenize_set(start_sets[0])
 stop_training_words = tokenize_set(stop_sets[0])
-
-
 all_words = keep_training_words + start_training_words + stop_training_words
+
 
 
 print '---sets created---'
@@ -137,22 +98,21 @@ print '---sets created---'
 ###############################################################################
 
 
-wc_keep_training = Counter(keep_training_words)
-wc_start_training = Counter(start_training_words)
-wc_stop_training = Counter(stop_training_words)
-wc_all_words = Counter(all_words)
 
-
-def add_one_estimate(feedback, ngram_count, class_ngram_count):
+# add_one_estimate uses naive bayes estimation with add one smoothing.
+# Because a priori the classes are all equally likely, the prior chance
+# is neglected.
+def add_one_estimate(feedback, ngram_count, class_ngram_count, class_size):
     feedback_tokenized = word_tokenize(feedback)
     sentence_probability = 1
+
     for ngram in feedback_tokenized:
         if ngram in ngram_count:
             if ngram in class_ngram_count:
                 sentence_probability *= ((class_ngram_count[ngram] + 1)
-                                         / (ngram_count[ngram] + 3))
+                                         / (class_size + 3))
             else:
-                sentence_probability *= 1 / (ngram_count[ngram] + 3)
+                sentence_probability *= 1 / (class_size + 3)
         else:
             sentence_probability *= 1 / 3
 
@@ -160,11 +120,26 @@ def add_one_estimate(feedback, ngram_count, class_ngram_count):
 
 
 
-def get_class(feedback, wc_all_words, wc_keep_training, wc_start_training, wc_stop_training):
-    p_keep = add_one_estimate(feedback, wc_all_words, wc_keep_training)
-    p_start = add_one_estimate(feedback, wc_all_words, wc_start_training)
-    p_stop = add_one_estimate(feedback, wc_all_words, wc_stop_training)
+def get_class(feedback,
+            wc_all_words,
+            wc_keep_training,
+            wc_start_training,
+            wc_stop_training,
+            keep_size,
+            start_size,
+            stop_size):
+    p_keep = add_one_estimate(feedback, wc_all_words, wc_keep_training, keep_size)
+    p_start = add_one_estimate(feedback, wc_all_words, wc_start_training, start_size)
+    p_stop = add_one_estimate(feedback, wc_all_words, wc_stop_training, stop_size)
+
     return np.argmax([p_keep, p_start, p_stop])
+
+
+
+wc_keep_training = Counter(keep_training_words)
+wc_start_training = Counter(start_training_words)
+wc_stop_training = Counter(stop_training_words)
+wc_all_words = Counter(all_words)
 
 
 
@@ -174,12 +149,28 @@ print '---classifying---'
 
 def classify_feedback(feedback_list, classnr):
     accurate = 0
+    keep_size = len(keep_training_words)
+    start_size = len(start_training_words)
+    stop_size = len (stop_training_words)
     for feedback in feedback_list:
-        prediction = get_class(feedback, wc_all_words, wc_keep_training, wc_start_training, wc_stop_training)
-        print prediction
+        prediction = get_class(feedback,
+                            wc_all_words,
+                            wc_keep_training,
+                            wc_start_training,
+                            wc_stop_training,
+                            keep_size,
+                            start_size,
+                            stop_size)
         if prediction == classnr:
             accurate += 1
 
     return accurate / len(feedback_list)
 
-print classify_feedback(keep_sets[1], 0)
+keep_accuracy = classify_feedback(keep_sets[1], 0)
+start_accuracy = classify_feedback(start_sets[1], 1)
+stop_accuracy = classify_feedback(stop_sets[1], 2)
+
+print 'keep accuracy =      ' + str(keep_accuracy)
+print 'start accuracy =     ' + str(start_accuracy)
+print 'stop accuracy =      ' + str(stop_accuracy)
+print 'average accuracy =   ' + str((keep_accuracy + start_accuracy + stop_accuracy)/3)
