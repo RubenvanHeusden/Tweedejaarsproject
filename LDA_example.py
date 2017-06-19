@@ -4,6 +4,17 @@ from nltk.stem.porter import PorterStemmer
 from gensim import corpora, models
 import gensim
 
+import numpy as np
+import pyLDAvis.gensim
+import json
+import warnings
+warnings.filterwarnings('ignore')  # To ignore all warnings that arise here to enhance clarity
+
+from gensim.models.coherencemodel import CoherenceModel
+from gensim.models.ldamodel import LdaModel
+from gensim.corpora.dictionary import Dictionary
+from numpy import array
+
 tokenizer = RegexpTokenizer(r'\w+')
 
 # create English stop words list
@@ -48,6 +59,16 @@ dictionary = corpora.Dictionary(texts)
 corpus = [dictionary.doc2bow(text) for text in texts]
 
 # generate LDA model
-ldamodel = gensim.models.ldamodel.LdaModel(corpus, num_topics=2, id2word = dictionary, passes=20)
+#ldamodel = gensim.models.ldamodel.LdaModel(corpus, num_topics=2, id2word = dictionary, passes=20)
 
-print(ldamodel.print_topics(num_topics=2, num_words=4))
+goodLdaModel = LdaModel(corpus=corpus, id2word=dictionary, iterations=50, num_topics=5)
+badLdaModel = LdaModel(corpus=corpus, id2word=dictionary, iterations=50, num_topics=3)
+
+print(goodLdaModel.print_topics(num_topics=2, num_words=4))
+print(badLdaModel.print_topics(num_topics=2, num_words=4))
+
+goodcm = CoherenceModel(model=goodLdaModel, texts=texts, dictionary=dictionary, coherence='c_v')
+badcm = CoherenceModel(model=badLdaModel, texts=texts, dictionary=dictionary, coherence='c_v')
+
+print goodcm.get_coherence()
+print badcm.get_coherence()
