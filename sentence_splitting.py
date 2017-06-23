@@ -40,22 +40,27 @@ lines = [cell.item(0).lower() for cell in data[:,0]]
 tokenized = []
 
 for line in lines : 
-    tokens = re.split('[\n.;,\?\!]',line)
+    tokens = re.split(r'[\n.;,\?\!]',line)
     tokenized+=tokens
     
     
     
     # Daan hier moeten we nog aan gaan werken
+    # kan wss ook wel allemaal in een for loop 
+    
     
 ### STEP 2 : REMOVING ANY STRANGE CHARACTERS IN STRINGS : ###
     # a preliminary test is made allowing only ascii upper and lowercase letters    
     
     
+for x in range (0,len(tokenized)) : 
+    # filtered unicdoe seperately , strange stuff was happening
+    tokenized[x] = re.sub(r'[^\x00-\x7F]+','', tokenized[x])
+    tokenized[x] = re.sub(ur"[-/]", " ",tokenized[x])
+    # See if you can think of more characters that should be filtered out 
+
     
-    
-    
-    
-    
+print tokenized
     
     
     
