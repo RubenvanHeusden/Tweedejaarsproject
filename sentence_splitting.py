@@ -14,23 +14,21 @@ import re
 # Reading in the data and dropping the entries in which the feedback was left
 # blank.
   
-def read_data(filename):
+def read_data_filtered(filename):
     d_frame = pd.read_csv(filename, sep=';', encoding='ISO-8859-15')
     x_data= d_frame['tiatxv']
-
+    
     y_data = d_frame['itclabel']
 
     data = pd.concat([x_data, y_data], axis=1, ignore_index=True)
     data = data.dropna(axis=0)
-
-    data =  np.matrix(data)
-    
+    data = np.matrix(data)
     return data
     
     
 
 
-data = read_data('small_sample_data.csv')
+data = read_data_filtered('small_sample_data.csv')
 
 ### STEP 1 : SPLITTING THE DATA AT NEWLINES AND OTHER CHARACTERS ###
 
@@ -59,14 +57,4 @@ for x in range (0,len(tokenized)) :
     tokenized[x] = re.sub(ur"[-/]", " ",tokenized[x])
     # See if you can think of more characters that should be filtered out 
 
-    
-print tokenized
-    
-    
-    
-    
-    
-    
-    
-    
     
