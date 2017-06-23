@@ -30,6 +30,6 @@ def read_data(filename):
 
 
 data = read_data('small_sample_data.csv')
+# Convert everything into lowercase 
 lines = [cell.item(0).lower() for cell in data[:,0]]
 
-    
