@@ -21,3 +21,9 @@ def read_data(filename):
     data =  np.matrix(data)
     
     return data
+    
+    
+
+data = read_data('small_sample_data.csv')
+lines = [cell.item(0) for cell in data[:,0]]
+print lines
