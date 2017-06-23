@@ -8,6 +8,7 @@ import numpy as np
 import csv
 from nltk.corpus import stopwords
 from nltk.stem.snowball import DutchStemmer
+import re
 
 
 # Reading in the data and dropping the entries in which the feedback was left
@@ -30,6 +31,37 @@ def read_data(filename):
 
 
 data = read_data('small_sample_data.csv')
+
+### STEP 1 : SPLITTING THE DATA AT NEWLINES AND OTHER CHARACTERS ###
+
 # Convert everything into lowercase 
 lines = [cell.item(0).lower() for cell in data[:,0]]
 
+tokenized = []
+
+for line in lines : 
+    tokens = re.split('[\n.;,\?\!]',line)
+    tokenized+=tokens
+    
+    
+    
+    # Daan hier moeten we nog aan gaan werken
+    
+### STEP 2 : REMOVING ANY STRANGE CHARACTERS IN STRINGS : ###
+    # a preliminary test is made allowing only ascii upper and lowercase letters    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
