@@ -8,6 +8,10 @@ import numpy as np
 import csv
 from nltk.corpus import stopwords
 from nltk.stem.snowball import DutchStemmer
+
+
+# Reading in the data and dropping the entries in which the feedback was left
+# blank.
   
 def read_data(filename):
     d_frame = pd.read_csv(filename, sep=';', encoding='ISO-8859-15')
@@ -24,6 +28,8 @@ def read_data(filename):
     
     
 
+
 data = read_data('small_sample_data.csv')
-lines = [cell.item(0) for cell in data[:,0]]
-print lines
+lines = [cell.item(0).lower() for cell in data[:,0]]
+
+    
