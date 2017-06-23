@@ -17,12 +17,23 @@ import re
 def read_data_filtered(filename):
     d_frame = pd.read_csv(filename, sep=';', encoding='ISO-8859-15')
     x_data= d_frame['tiatxv']
-    
     y_data = d_frame['itclabel']
-
     data = pd.concat([x_data, y_data], axis=1, ignore_index=True)
     data = data.dropna(axis=0)
-    data = np.matrix(data)
+    
+    new = []
+    for i in range(0,data.shape[0]) : 
+        row = data.iloc[i]
+        line = row[0].lower()
+        label = row[1]
+        splitted = re.split(r'[\n.;,\?\!]',line)
+        for item in splitted : 
+            item = re.sub(r'[^\x00-\x7F]+','', item)
+            item = re.sub(ur"[-/]", " ",item)
+            new.append([item,label])
+        
+    data = np.matrix(new)
+    print data.shape
     return data
     
     
